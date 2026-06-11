@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global typography */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: Fraunces, ui-serif, Georgia, serif;
+}
+
