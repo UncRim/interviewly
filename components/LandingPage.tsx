@@ -57,10 +57,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ jobDescription, setJobDescrip
         <AnimatedPill />
 
         {/* Hero Content */}
-        <h1 className="text-5xl md:text-7xl font-serif font-bold leading-[1.1] tracking-tight mb-6">
-          Prepare for <span className="text-primary italic">any role.</span><br />
-          <span className="text-white">Stop memorizing.</span><br />
-          Start speaking.
+        <h1
+          className="text-5xl md:text-7xl font-serif font-bold leading-[1.1] mb-6 w-full text-center"
+          style={{ letterSpacing: '1%' }}
+        >
+          <span className="block text-white">Prepare for any</span>
+          <span className="block mt-1">
+            <CyclingHeroWord />
+          </span>
+          <span className="block text-white mt-1">Stop memorizing.</span>
+          <span className="block text-white">Start speaking.</span>
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl leading-relaxed mb-12">
           Paste any job description to instantly generate a realistic, 15-minute audio mock interview. Build your verbal muscle memory in a zero-stakes environment.
@@ -353,6 +359,101 @@ const LandingPage: React.FC<LandingPageProps> = ({ jobDescription, setJobDescrip
 };
 
 export default LandingPage;
+
+const HERO_WORDS = ['role', 'experience', 'field'];
+const SCRAMBLE_CHARS = 'abcdefghijklmnopqrstuvwxyz';
+
+type ScrambleChar = { char: string; settled: boolean };
+
+const randomScrambleChar = () =>
+  SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+
+const toSettledChars = (word: string): ScrambleChar[] =>
+  `${word}.`.split('').map((char) => ({ char, settled: true }));
+
+const buildScrambleFrame = (target: string, progress: number): ScrambleChar[] =>
+  target.split('').map((char, i) => {
+    if (char === '.') {
+      const settled = progress > 0.88;
+      return { char: settled ? '.' : randomScrambleChar(), settled };
+    }
+
+    const revealAt = (i + 1) / (target.length + 1);
+    const settled = progress >= revealAt;
+    return { char: settled ? char : randomScrambleChar(), settled };
+  });
+
+const CyclingHeroWord = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [chars, setChars] = useState<ScrambleChar[]>(() => toSettledChars(HERO_WORDS[0]));
+  const [isSettled, setIsSettled] = useState(true);
+  const isFirstMount = useRef(true);
+
+  useEffect(() => {
+    const target = `${HERO_WORDS[currentIndex]}.`;
+
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      setChars(toSettledChars(HERO_WORDS[currentIndex]));
+      setIsSettled(true);
+      return;
+    }
+
+    let frame = 0;
+    const totalFrames = 16;
+    setIsSettled(false);
+
+    const scrambleInterval = setInterval(() => {
+      frame += 1;
+
+      if (frame >= totalFrames) {
+        setChars(toSettledChars(HERO_WORDS[currentIndex]));
+        setIsSettled(true);
+        clearInterval(scrambleInterval);
+        return;
+      }
+
+      setChars(buildScrambleFrame(target, frame / totalFrames));
+    }, 42);
+
+    return () => clearInterval(scrambleInterval);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (!isSettled) return;
+
+    const timeout = setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % HERO_WORDS.length);
+    }, 2200);
+
+    return () => clearTimeout(timeout);
+  }, [isSettled, currentIndex]);
+
+  return (
+    <span className="inline-flex items-baseline justify-center text-primary italic" aria-live="polite">
+      <span>
+        {chars.map((item, i) => (
+          <motion.span
+            key={`${currentIndex}-${i}`}
+            animate={{ color: item.settled ? '#D4ED31' : '#6B6B6B' }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            {item.char}
+          </motion.span>
+        ))}
+      </span>
+      <motion.span
+        className="inline-block w-[3px] h-[0.75em] bg-primary ml-[0.1em] align-middle rounded-sm shrink-0"
+        animate={{ opacity: isSettled ? [1, 0.2, 1] : 1 }}
+        transition={
+          isSettled
+            ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
+            : { duration: 0.1, repeat: Infinity, repeatType: 'reverse' }
+        }
+      />
+    </span>
+  );
+};
 
 const AnimatedPill = () => {
   const states = [
