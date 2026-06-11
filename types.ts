@@ -1,4 +1,11 @@
 
+export interface WaitlistEntry {
+  id: string;
+  name: string;
+  email: string;
+  joinedAt: string;
+}
+
 export interface Message {
   role: 'interviewer' | 'candidate';
   text: string;

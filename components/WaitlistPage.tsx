@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mic, User, Lock } from './Hicons';
+import { getSpotsLeft, joinWaitlist } from '../services/waitlistService';
 
 interface WaitlistPageProps {
   onBack: () => void;
@@ -9,14 +10,46 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBack }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    getSpotsLeft().then(setSpotsLeft);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    const result = await joinWaitlist(name, email);
+
+    if (result.success === false) {
+      if (result.error === 'duplicate') {
+        setError('This email is already on the waitlist.');
+      } else if (result.error === 'full') {
+        setError('Sorry, the waitlist is full.');
+        setSpotsLeft(0);
+      } else if (result.error === 'network') {
+        setError('Could not reach the server. Please try again.');
+      } else {
+        setError('Please enter a valid name and email.');
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    setSpotsLeft(result.spotsLeft);
     setIsSubmitted(true);
+    setIsSubmitting(false);
+
     setTimeout(() => {
       onBack();
     }, 2000);
   };
+
+  const isFull = spotsLeft === 0;
 
   return (
     <div className="min-h-screen bg-dark font-sans text-white flex flex-col relative overflow-hidden">
@@ -54,7 +87,7 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBack }) => {
           ) : (
             <>
               <div className="inline-flex items-center gap-2 bg-secondary text-white px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-                <User className="w-4 h-4" /> 371 Spots Left
+                <User className="w-4 h-4" /> {spotsLeft ?? '...'} Spots Left
               </div>
               
               <h1 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-4">
@@ -84,13 +117,19 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBack }) => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+                    {error}
+                  </div>
+                )}
                 <input
                   type="text"
                   placeholder="Fullname"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full bg-darker border border-border rounded-xl p-4 focus:ring-2 focus:ring-primary text-white font-medium outline-none placeholder:text-gray-500"
+                  disabled={isFull || isSubmitting}
+                  className="w-full bg-darker border border-border rounded-xl p-4 focus:ring-2 focus:ring-primary text-white font-medium outline-none placeholder:text-gray-500 disabled:opacity-50"
                 />
                 <input
                   type="email"
@@ -98,13 +137,16 @@ const WaitlistPage: React.FC<WaitlistPageProps> = ({ onBack }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-darker border border-border rounded-xl p-4 focus:ring-2 focus:ring-primary text-white font-medium outline-none placeholder:text-gray-500"
+                  disabled={isFull || isSubmitting}
+                  className="w-full bg-darker border border-border rounded-xl p-4 focus:ring-2 focus:ring-primary text-white font-medium outline-none placeholder:text-gray-500 disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-[#b8ce2b] text-dark px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors mt-2"
+                  disabled={isFull || isSubmitting}
+                  className="w-full bg-primary hover:bg-[#b8ce2b] text-dark px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Lock className="w-5 h-5 fill-current" /> Secure Spot
+                  <Lock className="w-5 h-5 fill-current" />
+                  {isFull ? 'Waitlist Full' : isSubmitting ? 'Securing Spot...' : 'Secure Spot'}
                 </button>
               </form>
             </>

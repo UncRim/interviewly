@@ -99,33 +99,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ jobDescription, setJobDescrip
         </div>
 
         {/* Ticker */}
-        <div className="w-screen relative left-1/2 right-1/2 ml-[-50vw] mr-[-50vw] overflow-hidden mt-16 border-y border-[#333] py-4 flex whitespace-nowrap text-sm font-medium text-gray-400">
+        <div className="self-stretch relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw] overflow-hidden mt-16 border-y border-[#333] py-4 text-sm font-medium text-gray-400">
           <style>{`
             @keyframes marquee {
               0% { transform: translateX(0); }
               100% { transform: translateX(-50%); }
             }
             .animate-marquee {
-              animation: marquee 20s linear infinite;
+              animation: marquee 25s linear infinite;
             }
           `}</style>
-          <div className="flex gap-8 pr-8 animate-marquee w-max">
-            {[
-              "Hidden Competency Extraction",
-              "Filler word detection",
-              "STAR Method scoring",
-              "Unlimited Practices",
-              "Pacing Analysis",
-              "15 minute audio sprints",
-              "Hidden Competency Extraction",
-              "Filler word detection",
-              "STAR Method scoring",
-              "Unlimited Practices",
-              "Pacing Analysis",
-              "15 minute audio sprints"
-            ].map((feature, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary"></div> {feature}
+          <div className="flex w-max animate-marquee whitespace-nowrap">
+            {[0, 1].map((track) => (
+              <div key={track} className="flex shrink-0 gap-8 pr-8" aria-hidden={track === 1 ? true : undefined}>
+                {[
+                  "Hidden Competency Extraction",
+                  "Filler word detection",
+                  "STAR Method scoring",
+                  "Unlimited Practices",
+                  "Pacing Analysis",
+                  "15 minute audio sprints",
+                ].map((feature, i) => (
+                  <div key={`${track}-${i}`} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div> {feature}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

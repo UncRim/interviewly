@@ -1,0 +1,22 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/waitlist/stats"
+  to = "/.netlify/functions/waitlist-stats"
+  status = 200
+
+[[redirects]]
+  from = "/api/waitlist/join"
+  to = "/.netlify/functions/waitlist-join"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

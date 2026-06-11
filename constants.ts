@@ -1,3 +1,4 @@
+export const WAITLIST_TOTAL_SPOTS = 371;
 
 export const getInterviewerInstruction = (jobDescription: string) => `
 You are a highly experienced technical recruiter and domain expert conducting a professional interview for the following role:
